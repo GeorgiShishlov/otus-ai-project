@@ -1,0 +1,29 @@
+﻿{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\georg\\claude-memory\\load-wiki.ps1\"",
+            "timeout": 10,
+            "statusMessage": "Загружаю wiki проекта..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "Write-Output '{\"systemMessage\": \"Напоминание: обнови wiki проекта C:\\\\Users\\\\georg\\\\claude-memory\\\\wiki\\\\projects\\\\otus-ai-project\\\\overview.md\"}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
