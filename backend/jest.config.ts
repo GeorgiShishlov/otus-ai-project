@@ -10,6 +10,13 @@ const config: Config = {
   },
   forceExit: true,
   clearMocks: true,
+  testEnvironmentOptions: {},
+  globals: {
+    'ts-jest': {
+      diagnostics: false,
+    },
+  },
+  setupFiles: ['<rootDir>/tests/setup.ts'],
 };
 
 export default config;

@@ -120,7 +120,6 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
         entityId: budget.id,
         action: 'CREATE',
         userId: req.userId!,
-        before: null,
         after: budget as any,
       },
     });
@@ -218,7 +217,6 @@ router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => 
       action: 'DELETE',
       userId: req.userId!,
       before: existing as any,
-      after: null,
     },
   });
 

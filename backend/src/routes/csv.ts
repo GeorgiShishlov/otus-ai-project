@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
-import { parse } from 'csv-parser';
+import csvParser from 'csv-parser';
 import { createObjectCsvWriter } from 'csv-writer';
 import { Readable } from 'stream';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
@@ -73,8 +73,8 @@ router.post('/import', async (req: AuthRequest, res: Response): Promise<void> =>
   const rows: any[] = await new Promise((resolve, reject) => {
     const results: any[] = [];
     Readable.from([content])
-      .pipe(parse({ headers: true, trim: true }))
-      .on('data', (row) => results.push(row))
+      .pipe(csvParser({ headers: true }))
+      .on('data', (row: Record<string, string>) => results.push(row))
       .on('end', () => resolve(results))
       .on('error', reject);
   });
