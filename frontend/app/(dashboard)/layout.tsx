@@ -6,7 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 
 const NAV_ITEMS = [
-  { href: '/',             label: 'Дашборд',    icon: '📊' },
+  { href: '/dashboard',    label: 'Дашборд',    icon: '📊' },
   { href: '/transactions', label: 'Транзакции', icon: '💳' },
   { href: '/categories',   label: 'Категории',  icon: '🏷️' },
   { href: '/budgets',      label: 'Бюджеты',    icon: '🎯' },

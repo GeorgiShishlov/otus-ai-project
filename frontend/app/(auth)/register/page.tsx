@@ -19,7 +19,7 @@ export default function RegisterPage() {
     try {
       const { data } = await api.post('/auth/register', { name, email, password });
       localStorage.setItem('token', data.token);
-      router.push('/');
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Ошибка регистрации');
     } finally {

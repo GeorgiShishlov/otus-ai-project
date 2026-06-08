@@ -41,7 +41,6 @@ export function startRecurringJob(): void {
             entityId: transaction.id,
             action: 'CREATE',
             userId: rule.userId,
-            before: null,
             after: { ...transaction, source: 'recurring' } as any,
           },
         });
