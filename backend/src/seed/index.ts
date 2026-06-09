@@ -31,14 +31,11 @@ function monthEnd(monthsAgo: number): Date {
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Очистка в обратном порядке зависимостей
-  await prisma.changeLog.deleteMany();
-  await prisma.recurringRule.deleteMany();
-  await prisma.budget.deleteMany();
-  await prisma.transaction.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.currency.deleteMany();
+  const existing = await prisma.user.findUnique({ where: { email: 'alice@finance.demo' } });
+  if (existing) {
+    console.log('✅ Already seeded, skipping.');
+    return;
+  }
 
   // ─── Валюты ───────────────────────────────────────────────
   await prisma.currency.createMany({

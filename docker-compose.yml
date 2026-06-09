@@ -42,5 +42,20 @@ services:
     depends_on:
       - backend
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./pgadmin/pgpass:/pgadmin4/pgpass:ro
+    entrypoint: ["/bin/sh", "-c", "cp /pgadmin4/pgpass /tmp/pgpass && chmod 600 /tmp/pgpass && /entrypoint.sh"]
+
 volumes:
   postgres_data:
