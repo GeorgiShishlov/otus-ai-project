@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -32,7 +33,10 @@ const swaggerSpec = swaggerJsdoc({
       },
     },
   },
-  apis: ['./src/routes/*.ts'],
+  apis: [
+    path.join(__dirname, 'routes/*.ts'),
+    path.join(__dirname, 'routes/*.js'),
+  ],
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
