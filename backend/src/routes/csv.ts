@@ -1,13 +1,39 @@
 import { Router, Response } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
-import csvParser from 'csv-parser';
 import { createObjectCsvWriter } from 'csv-writer';
-import { Readable } from 'stream';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
+
+function parseCsv(content: string): Record<string, string>[] {
+  const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n');
+  if (lines.length < 2) return [];
+
+  const parseRow = (line: string): string[] => {
+    const cols: string[] = [];
+    let cur = '';
+    let inQuotes = false;
+    for (const ch of line) {
+      if (ch === '"') { inQuotes = !inQuotes; }
+      else if (ch === ',' && !inQuotes) { cols.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    cols.push(cur.trim());
+    return cols;
+  };
+
+  const headers = parseRow(lines[0]).map(h => h.replace(/^﻿/, ''));
+  return lines.slice(1)
+    .filter(l => l.trim())
+    .map(line => {
+      const vals = parseRow(line);
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => { row[h] = vals[i] ?? ''; });
+      return row;
+    });
+}
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -70,14 +96,7 @@ router.post('/import', async (req: AuthRequest, res: Response): Promise<void> =>
   });
   const categoryMap = new Map(categories.map((c) => [c.name.toLowerCase(), c.id]));
 
-  const rows: any[] = await new Promise((resolve, reject) => {
-    const results: any[] = [];
-    Readable.from([content])
-      .pipe(csvParser({ headers: true }))
-      .on('data', (row: Record<string, string>) => results.push(row))
-      .on('end', () => resolve(results))
-      .on('error', reject);
-  });
+  const rows = parseCsv(content);
 
   let imported = 0;
   let failed = 0;
