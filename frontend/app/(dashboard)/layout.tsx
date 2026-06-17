@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/categories',   label: 'Категории',  icon: '🏷️' },
   { href: '/budgets',      label: 'Бюджеты',    icon: '🎯' },
   { href: '/recurring',    label: 'Повторы',    icon: '🔄' },
+  { href: '/currencies',   label: 'Валюты',     icon: '💱' },
   { href: '/csv',          label: 'CSV',        icon: '📂' },
   { href: '/changelog',    label: 'Лог',        icon: '📋' },
 ];
