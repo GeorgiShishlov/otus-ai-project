@@ -15,6 +15,7 @@ const recurringSchema = z.object({
   description: z.string().optional(),
   dayOfMonth: z.number().int().min(1).max(28),
   currency: z.string().length(3).default('RUB'),
+  isActive: z.boolean().optional(),
 });
 
 /**
@@ -173,5 +174,48 @@ function getNextRunDate(dayOfMonth: number): Date {
   }
   return next;
 }
+
+/**
+ * @swagger
+ * /api/recurring/trigger:
+ *   post:
+ *     summary: Manually trigger recurring job for current user
+ *     tags: [Recurring]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Number of transactions created
+ */
+router.post('/trigger', async (req: AuthRequest, res: Response): Promise<void> => {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  const dueRules = await prisma.recurringRule.findMany({
+    where: { userId: req.userId, isActive: true },
+  });
+
+  let created = 0;
+  for (const rule of dueRules) {
+    await prisma.transaction.create({
+      data: {
+        userId: rule.userId,
+        categoryId: rule.categoryId,
+        amount: rule.amount,
+        type: rule.type,
+        description: rule.description ?? 'Recurring transaction',
+        currency: rule.currency,
+        exchangeRate: 1.0,
+        date: new Date(),
+      },
+    });
+    const nextRun = new Date(rule.nextRunDate);
+    nextRun.setMonth(nextRun.getMonth() + 1);
+    await prisma.recurringRule.update({ where: { id: rule.id }, data: { nextRunDate: nextRun } });
+    created++;
+  }
+
+  res.json({ created });
+});
 
 export default router;

@@ -55,7 +55,7 @@ export default function RecurringPage() {
   }
 
   async function handleToggle(rule: RecurringRule) {
-    await api.patch(`/recurring/${rule.id}`, { isActive: !rule.isActive });
+    await api.put(`/recurring/${rule.id}`, { isActive: !rule.isActive });
     load();
   }
 
