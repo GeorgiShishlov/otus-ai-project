@@ -1,10 +1,9 @@
-import cron from 'node-cron';
-import { PrismaClient } from '@prisma/client';
+﻿import cron from 'node-cron';
+import prisma from '../lib/prisma';
 
-const prisma = new PrismaClient();
 
 export function startRecurringJob(): void {
-  // Запускается каждый день в 00:05
+  // Р—Р°РїСѓСЃРєР°РµС‚СЃСЏ РєР°Р¶РґС‹Р№ РґРµРЅСЊ РІ 00:05
   cron.schedule('5 0 * * *', async () => {
     console.log('[RecurringJob] Checking recurring rules...');
 
@@ -45,9 +44,12 @@ export function startRecurringJob(): void {
           },
         });
 
-        // Следующий запуск — через месяц от текущей даты правила
-        const nextRun = new Date(rule.nextRunDate);
-        nextRun.setMonth(nextRun.getMonth() + 1);
+        // Advance nextRunDate from today so dormant rules don't fire daily to “catch up”
+        const nextRun = new Date(today);
+        nextRun.setDate(rule.dayOfMonth);
+        if (nextRun <= today) {
+          nextRun.setMonth(nextRun.getMonth() + 1);
+        }
 
         await prisma.recurringRule.update({
           where: { id: rule.id },
@@ -63,3 +65,4 @@ export function startRecurringJob(): void {
 
   console.log('[RecurringJob] Scheduler started (runs daily at 00:05)');
 }
+

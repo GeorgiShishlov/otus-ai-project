@@ -15,6 +15,7 @@ interface ImportResult {
   imported: number;
   failed: number;
   errors: string[];
+  createdCategories: string[];
 }
 
 export default function CsvPage() {
@@ -159,6 +160,9 @@ export default function CsvPage() {
         {importResult && (
           <div className={`mt-4 rounded-lg p-3 text-sm ${importResult.failed === 0 ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
             <p className="font-medium">Импортировано: {importResult.imported}, ошибок: {importResult.failed}</p>
+            {importResult.createdCategories?.length > 0 && (
+              <p className="mt-1 text-xs">Созданы новые категории: {importResult.createdCategories.join(', ')}</p>
+            )}
             {importResult.errors.length > 0 && (
               <ul className="mt-1 space-y-0.5 text-xs">
                 {importResult.errors.map((e, i) => <li key={i}>• {e}</li>)}

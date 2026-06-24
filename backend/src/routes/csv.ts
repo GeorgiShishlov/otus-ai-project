@@ -1,6 +1,6 @@
-import { Router, Response } from 'express';
+﻿import { Router, Response } from 'express';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
 import { createObjectCsvWriter } from 'csv-writer';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import os from 'os';
@@ -24,7 +24,7 @@ function parseCsv(content: string): Record<string, string>[] {
     return cols;
   };
 
-  const headers = parseRow(lines[0]).map(h => h.replace(/^﻿/, ''));
+  const headers = parseRow(lines[0]).map(h => h.replace(/^п»ї/, ''));
   return lines.slice(1)
     .filter(l => l.trim())
     .map(line => {
@@ -36,7 +36,6 @@ function parseCsv(content: string): Record<string, string>[] {
 }
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.use(authMiddleware);
 
@@ -101,13 +100,14 @@ router.post('/import', async (req: AuthRequest, res: Response): Promise<void> =>
   let imported = 0;
   let failed = 0;
   const errors: string[] = [];
+  const createdCategories: string[] = [];
 
   for (const row of rows) {
     try {
       const amount = parseFloat(row[mapping.amount]);
       const date = new Date(row[mapping.date]);
       const typeRaw = row[mapping.type]?.toString().toUpperCase();
-      const type = typeRaw === 'INCOME' || typeRaw === 'ДОХОД' ? 'INCOME' : 'EXPENSE';
+      const type = typeRaw === 'INCOME' ? 'INCOME' : 'EXPENSE';
       const categoryName = row[mapping.categoryName]?.toString().toLowerCase();
       const description = mapping.description ? row[mapping.description] : undefined;
 
@@ -117,11 +117,13 @@ router.post('/import', async (req: AuthRequest, res: Response): Promise<void> =>
 
       let categoryId = categoryMap.get(categoryName);
       if (!categoryId) {
+        const displayName = row[mapping.categoryName];
         const newCategory = await prisma.category.create({
-          data: { name: row[mapping.categoryName], userId: req.userId! },
+          data: { name: displayName, userId: req.userId! },
         });
         categoryId = newCategory.id;
         categoryMap.set(categoryName, categoryId);
+        createdCategories.push(displayName);
       }
 
       await prisma.transaction.create({
@@ -144,7 +146,7 @@ router.post('/import', async (req: AuthRequest, res: Response): Promise<void> =>
     }
   }
 
-  res.json({ imported, failed, errors: errors.slice(0, 10) });
+  res.json({ imported, failed, errors: errors.slice(0, 10), createdCategories });
 });
 
 /**
@@ -223,6 +225,8 @@ router.get('/export', async (req: AuthRequest, res: Response): Promise<void> => 
   const fileStream = fs.createReadStream(tmpFile);
   fileStream.pipe(res);
   fileStream.on('end', () => fs.unlink(tmpFile, () => {}));
+  fileStream.on('error', () => fs.unlink(tmpFile, () => {}));
 });
 
 export default router;
+

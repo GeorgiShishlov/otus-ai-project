@@ -1,10 +1,9 @@
-import { Router, Response } from 'express';
+﻿import { Router, Response } from 'express';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.use(authMiddleware);
 
@@ -45,17 +44,19 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
       const dateFrom = new Date(year, mon - 1, 1);
       const dateTo = new Date(year, mon, 0, 23, 59, 59);
 
-      const spent = await prisma.transaction.aggregate({
+      const spentTxns = await prisma.transaction.findMany({
         where: {
           userId: req.userId,
           categoryId: budget.categoryId,
           type: 'EXPENSE',
           date: { gte: dateFrom, lte: dateTo },
         },
-        _sum: { amount: true },
+        select: { amount: true, exchangeRate: true },
       });
 
-      const spentAmount = Number(spent._sum.amount ?? 0);
+      const spentAmount = Math.round(
+        spentTxns.reduce((s, t) => s + Number(t.amount) / Number(t.exchangeRate), 0)
+      );
       const limitAmount = Number(budget.limitAmount);
 
       return {
@@ -224,3 +225,4 @@ router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => 
 });
 
 export default router;
+
