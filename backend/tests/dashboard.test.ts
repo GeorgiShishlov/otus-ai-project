@@ -40,13 +40,11 @@ describe('Dashboard routes', () => {
   });
 
   it('should return dashboard statistics', async () => {
-    (mockPrisma.transaction.aggregate as jest.Mock)
-      .mockResolvedValueOnce({ _sum: { amount: 90000 } })
-      .mockResolvedValueOnce({ _sum: { amount: 45000 } })
-      .mockResolvedValue({ _sum: { amount: 0 } });
+    (mockPrisma.transaction.findMany as jest.Mock)
+      .mockResolvedValueOnce([{ amount: 90000, exchangeRate: 1.0 }])             // INCOME current month
+      .mockResolvedValueOnce([{ amount: 45000, exchangeRate: 1.0, categoryId: 'cat1' }]) // EXPENSE current month
+      .mockResolvedValue([]);                                                      // lineChart months
 
-    (mockPrisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
-    (mockPrisma.transaction.groupBy as jest.Mock).mockResolvedValue([]);
     (mockPrisma.category.findMany as jest.Mock).mockResolvedValue([]);
 
     const res = await request(app)
